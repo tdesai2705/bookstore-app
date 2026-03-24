@@ -16,12 +16,20 @@ jobs:
       - name: Checkout code
         uses: https://github.com/cloudbees-io/checkout@v1
 
+      - name: Install dependencies
+        uses: docker://node:20-alpine
+        run: npm ci
+
       - name: Run tests
-        uses: ./.cloudbees/actions/test-node
+        uses: docker://node:20-alpine
+        run: npm test
+
+      - name: Publish test results
+        uses: https://github.com/cloudbees-io/publish-test-results@v2
         with:
-          node-version: '20'
-          working-directory: '.'
-          test-results-path: 'test-results'
+          test-type: JEST
+          folder-name: test-results
+          file-name: junit.xml
 
       - name: Publish test evidence
         uses: https://github.com/cloudbees-io/publish-evidence-item@v1
