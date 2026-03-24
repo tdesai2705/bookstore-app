@@ -1,0 +1,49 @@
+apiVersion: automation.cloudbees.io/v1alpha1
+kind: workflow
+
+name: CI Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+
+jobs:
+  test:
+    steps:
+      - name: Checkout code
+        uses: https://github.com/cloudbees-io/checkout@v1
+
+      - name: Run tests
+        uses: ./.cloudbees/actions/test-node
+        with:
+          node-version: '20'
+          working-directory: '.'
+          test-results-path: 'test-results'
+
+      - name: Publish test evidence
+        uses: https://github.com/cloudbees-io/publish-evidence-item@v1
+        with:
+          content: |
+            ## Test Results
+
+            - **Status**: ✅ All tests passed
+            - **Framework**: Jest + Supertest
+            - **Node Version**: 20
+            - **Commit**: ${{ cloudbees.scm.sha }}
+
+            Test results published successfully.
+
+  build:
+    needs: test
+    steps:
+      - name: Build and push container
+        uses: ./.cloudbees/workflows/build-image.yaml
+        with:
+          image-name: ${{ secrets.DOCKER_USERNAME }}/bookstore-app
+          image-tag: ${{ cloudbees.scm.sha }}
+          dockerfile: Dockerfile
+          context: .
+        secrets: inherit

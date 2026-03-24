@@ -1,0 +1,70 @@
+apiVersion: automation.cloudbees.io/v1alpha1
+kind: workflow
+
+name: Build and Push Container Image
+
+on:
+  workflow_call:
+    inputs:
+      image-name:
+        description: 'Docker image name'
+        required: true
+        type: string
+      image-tag:
+        description: 'Docker image tag'
+        required: true
+        type: string
+      dockerfile:
+        description: 'Path to Dockerfile'
+        required: false
+        type: string
+        default: 'Dockerfile'
+      context:
+        description: 'Build context path'
+        required: false
+        type: string
+        default: '.'
+
+jobs:
+  build-push:
+    steps:
+      - name: Checkout code
+        uses: https://github.com/cloudbees-io/checkout@v1
+
+      - name: Configure Docker credentials
+        uses: https://github.com/cloudbees-io/configure-oci-credentials@v1
+        with:
+          registry: index.docker.io
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push with Kaniko (SHA tag)
+        uses: https://github.com/cloudbees-io/kaniko@v1
+        with:
+          destination: ${{ inputs.image-name }}:${{ inputs.image-tag }}
+          context: ${{ inputs.context }}
+          dockerfile: ${{ inputs.dockerfile }}
+
+      - name: Build and push with Kaniko (latest tag)
+        uses: https://github.com/cloudbees-io/kaniko@v1
+        with:
+          destination: ${{ inputs.image-name }}:latest
+          context: ${{ inputs.context }}
+          dockerfile: ${{ inputs.dockerfile }}
+
+      - name: Publish build evidence
+        uses: https://github.com/cloudbees-io/publish-evidence-item@v1
+        with:
+          content: |
+            ## Container Build Complete
+
+            - **Image**: `${{ inputs.image-name }}`
+            - **Tags**: `${{ inputs.image-tag }}`, `latest`
+            - **Registry**: Docker Hub
+            - **Commit**: ${{ cloudbees.scm.sha }}
+
+            ### Pull Command
+            ```bash
+            docker pull ${{ inputs.image-name }}:${{ inputs.image-tag }}
+            docker pull ${{ inputs.image-name }}:latest
+            ```
