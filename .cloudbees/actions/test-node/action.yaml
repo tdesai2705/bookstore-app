@@ -26,16 +26,12 @@ runs:
       run: |
         cd ${{ inputs.working-directory }}
         npm ci
-      container:
-        image: docker://node:20-alpine
 
     - name: Run tests
       shell: sh
       run: |
         cd ${{ inputs.working-directory }}
         npm test
-      container:
-        image: docker://node:20-alpine
 
     - name: Publish test results
       uses: https://github.com/cloudbees-io/publish-test-results@v2
