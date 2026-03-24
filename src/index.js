@@ -7,7 +7,7 @@ const PORT = process.env.PORT || 3000;
 
 // Enable CORS for frontend
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000', 'https://gleeful-meringue-9bc60f.netlify.app'],
+  origin: ['http://localhost:5173', 'http://localhost:3000', 'https://tejasbookstoreunify.netlify.app'],
   credentials: true
 }));
 
