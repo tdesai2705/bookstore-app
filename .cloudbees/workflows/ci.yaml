@@ -28,8 +28,7 @@ jobs:
         uses: https://github.com/cloudbees-io/publish-test-results@v2
         with:
           test-type: JEST
-          folder-name: test-results
-          file-name: junit.xml
+          results-path: test-results/junit.xml
 
       - name: Publish test evidence
         uses: https://github.com/cloudbees-io/publish-evidence-item@v1
