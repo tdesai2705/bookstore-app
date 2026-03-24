@@ -46,10 +46,43 @@ jobs:
   build:
     needs: test
     steps:
-      - name: Build and push container
-        uses: ./.cloudbees/workflows/build-image.yaml
+      - name: Checkout code
+        uses: https://github.com/cloudbees-io/checkout@v1
+
+      - name: Configure Docker credentials
+        uses: https://github.com/cloudbees-io/configure-oci-credentials@v1
         with:
-          image-name: ${{ secrets.DOCKER_USERNAME }}/bookstore-app
-          image-tag: ${{ cloudbees.scm.sha }}
-          dockerfile: Dockerfile
+          registry: index.docker.io
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push with Kaniko (SHA tag)
+        uses: https://github.com/cloudbees-io/kaniko@v1
+        with:
+          destination: ${{ secrets.DOCKER_USERNAME }}/bookstore-app:${{ cloudbees.scm.sha }}
           context: .
+          dockerfile: Dockerfile
+
+      - name: Build and push with Kaniko (latest tag)
+        uses: https://github.com/cloudbees-io/kaniko@v1
+        with:
+          destination: ${{ secrets.DOCKER_USERNAME }}/bookstore-app:latest
+          context: .
+          dockerfile: Dockerfile
+
+      - name: Publish build evidence
+        uses: https://github.com/cloudbees-io/publish-evidence-item@v1
+        with:
+          content: |
+            ## Container Build Complete
+
+            - **Image**: `${{ secrets.DOCKER_USERNAME }}/bookstore-app`
+            - **Tags**: `${{ cloudbees.scm.sha }}`, `latest`
+            - **Registry**: Docker Hub
+            - **Commit**: ${{ cloudbees.scm.sha }}
+
+            ### Pull Command
+            ```bash
+            docker pull ${{ secrets.DOCKER_USERNAME }}/bookstore-app:${{ cloudbees.scm.sha }}
+            docker pull ${{ secrets.DOCKER_USERNAME }}/bookstore-app:latest
+            ```
