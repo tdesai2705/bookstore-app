@@ -1,3 +1,4 @@
+# Redeployed: 2026-03-24
 [build]
   base = "client"
   command = "npm run build"
