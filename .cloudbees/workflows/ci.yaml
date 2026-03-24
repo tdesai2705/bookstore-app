@@ -46,4 +46,3 @@ jobs:
           image-tag: ${{ cloudbees.scm.sha }}
           dockerfile: Dockerfile
           context: .
-        secrets: inherit
