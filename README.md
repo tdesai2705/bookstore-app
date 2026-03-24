@@ -196,3 +196,5 @@ bookstore-app/
 ## License
 
 MIT
+
+<!-- Deployed: Frontend on Netlify, Backend on Railway -->
