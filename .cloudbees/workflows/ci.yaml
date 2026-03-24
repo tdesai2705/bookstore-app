@@ -53,20 +53,20 @@ jobs:
         uses: https://github.com/cloudbees-io/configure-oci-credentials@v1
         with:
           registry: index.docker.io
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          username: ${{ vars.docker-user }}
+          password: ${{ secrets.docker_token }}
 
       - name: Build and push with Kaniko (SHA tag)
         uses: https://github.com/cloudbees-io/kaniko@v1
         with:
-          destination: ${{ secrets.DOCKER_USERNAME }}/bookstore-app:${{ cloudbees.scm.sha }}
+          destination: ${{ vars.docker-user }}/bookstore-app:${{ cloudbees.scm.sha }}
           context: .
           dockerfile: Dockerfile
 
       - name: Build and push with Kaniko (latest tag)
         uses: https://github.com/cloudbees-io/kaniko@v1
         with:
-          destination: ${{ secrets.DOCKER_USERNAME }}/bookstore-app:latest
+          destination: ${{ vars.docker-user }}/bookstore-app:latest
           context: .
           dockerfile: Dockerfile
 
@@ -76,13 +76,13 @@ jobs:
           content: |
             ## Container Build Complete
 
-            - **Image**: `${{ u tejasdesai27 }}/bookstore-app`
+            - **Image**: `${{ vars.docker-user }}/bookstore-app`
             - **Tags**: `${{ cloudbees.scm.sha }}`, `latest`
             - **Registry**: Docker Hub
             - **Commit**: ${{ cloudbees.scm.sha }}
 
             ### Pull Command
             ```bash
-            docker pull ${{ u tejasdesai27 }}/bookstore-app:${{ cloudbees.scm.sha }}
-            docker pull ${{ u tejasdesai27 }}/bookstore-app:latest
+            docker pull ${{ vars.docker-user }}/bookstore-app:${{ cloudbees.scm.sha }}
+            docker pull ${{ vars.docker-user }}/bookstore-app:latest
             ```
