@@ -76,13 +76,13 @@ jobs:
           content: |
             ## Container Build Complete
 
-            - **Image**: `${{ secrets.DOCKER_USERNAME }}/bookstore-app`
+            - **Image**: `${{ u tejasdesai27 }}/bookstore-app`
             - **Tags**: `${{ cloudbees.scm.sha }}`, `latest`
             - **Registry**: Docker Hub
             - **Commit**: ${{ cloudbees.scm.sha }}
 
             ### Pull Command
             ```bash
-            docker pull ${{ secrets.DOCKER_USERNAME }}/bookstore-app:${{ cloudbees.scm.sha }}
-            docker pull ${{ secrets.DOCKER_USERNAME }}/bookstore-app:latest
+            docker pull ${{ u tejasdesai27 }}/bookstore-app:${{ cloudbees.scm.sha }}
+            docker pull ${{ u tejasdesai27 }}/bookstore-app:latest
             ```
