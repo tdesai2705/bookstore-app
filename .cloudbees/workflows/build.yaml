@@ -1,0 +1,55 @@
+apiVersion: automation.cloudbees.io/v1alpha1
+kind: workflow
+
+name: Build and Push Docker Image
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - develop
+
+jobs:
+  build:
+    steps:
+      - name: Checkout code
+        uses: https://github.com/cloudbees-io/checkout@v1
+
+      - name: Configure Docker credentials
+        uses: https://github.com/cloudbees-io/configure-oci-credentials@v1
+        with:
+          registry: index.docker.io
+          username: ${{ vars.docker_user }}
+          password: ${{ secrets.docker_token }}
+
+      - name: Build and push with Kaniko (SHA tag)
+        uses: https://github.com/cloudbees-io/kaniko@v1
+        with:
+          destination: ${{ vars.docker_user }}/bookstore-app:${{ cloudbees.scm.sha }}
+          context: .
+          dockerfile: Dockerfile
+
+      - name: Build and push with Kaniko (latest tag)
+        uses: https://github.com/cloudbees-io/kaniko@v1
+        with:
+          destination: ${{ vars.docker_user }}/bookstore-app:latest
+          context: .
+          dockerfile: Dockerfile
+
+      - name: Publish build evidence
+        uses: https://github.com/cloudbees-io/publish-evidence-item@v1
+        with:
+          content: |
+            ## Container Build Complete
+
+            - **Image**: `${{ vars.docker_user }}/bookstore-app`
+            - **Tags**: `${{ cloudbees.scm.sha }}`, `latest`
+            - **Registry**: Docker Hub
+            - **Commit**: ${{ cloudbees.scm.sha }}
+
+            ### Pull Command
+            ```bash
+            docker pull ${{ vars.docker_user }}/bookstore-app:${{ cloudbees.scm.sha }}
+            docker pull ${{ vars.docker_user }}/bookstore-app:latest
+            ```
