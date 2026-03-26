@@ -23,22 +23,3 @@ jobs:
       - name: Run tests
         uses: docker://node:20-alpine
         run: npm test
-
-      - name: Publish test results
-        uses: https://github.com/cloudbees-io/publish-test-results@v2
-        with:
-          test-type: JEST
-          results-path: test-results/junit.xml
-
-      - name: Publish test evidence
-        uses: https://github.com/cloudbees-io/publish-evidence-item@v1
-        with:
-          content: |
-            ## Test Results
-
-            - **Status**: ✅ All tests passed
-            - **Framework**: Jest + Supertest
-            - **Node Version**: 20
-            - **Commit**: ${{ cloudbees.scm.sha }}
-
-            Test results published successfully.
