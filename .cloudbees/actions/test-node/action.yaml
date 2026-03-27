@@ -1,41 +1,39 @@
 apiVersion: automation.cloudbees.io/v1alpha1
 kind: action
 
-name: Test Node.js Application
-description: Run Node.js tests with Jest and publish results
-
-inputs:
-  node-version:
-    description: 'Node.js version to use'
-    required: false
-    default: '20'
-  working-directory:
-    description: 'Working directory'
-    required: false
-    default: '.'
-  test-results-path:
-    description: 'Path to test results'
-    required: false
-    default: 'test-results'
+name: Node.js Test Action
+description: Runs Node.js tests and publishes results
 
 runs:
   using: composite
   steps:
     - name: Install dependencies
+      uses: docker://node:20-alpine
       shell: sh
       run: |
-        cd ${{ inputs.working-directory }}
         npm ci
 
     - name: Run tests
+      uses: docker://node:20-alpine
       shell: sh
       run: |
-        cd ${{ inputs.working-directory }}
         npm test
 
     - name: Publish test results
       uses: https://github.com/cloudbees-io/publish-test-results@v2
       with:
         test-type: JEST
-        folder-name: ${{ inputs.working-directory }}/${{ inputs.test-results-path }}
-        file-name: junit.xml
+        results-path: test-results/junit.xml
+
+    - name: Publish test evidence
+      uses: https://github.com/cloudbees-io/publish-evidence-item@v1
+      with:
+        content: |
+          ## Test Results
+
+          - **Status**: ✅ All tests passed
+          - **Framework**: Jest + Supertest
+          - **Node Version**: 20
+          - **Commit**: ${{ cloudbees.scm.sha }}
+
+          Test results published successfully.

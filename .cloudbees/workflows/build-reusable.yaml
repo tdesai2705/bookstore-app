@@ -1,14 +1,17 @@
 apiVersion: automation.cloudbees.io/v1alpha1
 kind: workflow
 
-name: Build and Push Docker Image
+name: Reusable Build Workflow
 
 on:
-  workflow_dispatch:
-  push:
-    branches:
-      - main
-      - develop
+  workflow_call:
+    inputs:
+      docker_user:
+        type: string
+        required: true
+    secrets:
+      docker_token:
+        required: true
 
 jobs:
   build:
@@ -20,20 +23,20 @@ jobs:
         uses: https://github.com/cloudbees-io/configure-oci-credentials@v1
         with:
           registry: index.docker.io
-          username: ${{ vars.docker_user }}
+          username: ${{ inputs.docker_user }}
           password: ${{ secrets.docker_token }}
 
       - name: Build and push with Kaniko (SHA tag)
         uses: https://github.com/cloudbees-io/kaniko@v1
         with:
-          destination: ${{ vars.docker_user }}/bookstore-app:${{ cloudbees.scm.sha }}
+          destination: ${{ inputs.docker_user }}/bookstore-app:${{ cloudbees.scm.sha }}
           context: .
           dockerfile: Dockerfile
 
       - name: Build and push with Kaniko (latest tag)
         uses: https://github.com/cloudbees-io/kaniko@v1
         with:
-          destination: ${{ vars.docker_user }}/bookstore-app:latest
+          destination: ${{ inputs.docker_user }}/bookstore-app:latest
           context: .
           dockerfile: Dockerfile
 
@@ -43,13 +46,13 @@ jobs:
           content: |
             ## Container Build Complete
 
-            - **Image**: `${{ vars.docker_user }}/bookstore-app`
+            - **Image**: `${{ inputs.docker_user }}/bookstore-app`
             - **Tags**: `${{ cloudbees.scm.sha }}`, `latest`
             - **Registry**: Docker Hub
             - **Commit**: ${{ cloudbees.scm.sha }}
 
             ### Pull Command
             ```bash
-            docker pull ${{ vars.docker_user }}/bookstore-app:${{ cloudbees.scm.sha }}
-            docker pull ${{ vars.docker_user }}/bookstore-app:latest
+            docker pull ${{ inputs.docker_user }}/bookstore-app:${{ cloudbees.scm.sha }}
+            docker pull ${{ inputs.docker_user }}/bookstore-app:latest
             ```
