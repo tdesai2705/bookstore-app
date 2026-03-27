@@ -22,7 +22,3 @@ jobs:
   build:
     needs: test
     uses: ./.cloudbees/workflows/build-reusable.yaml
-    with:
-      docker_user: ${{ vars.docker_user }}
-    secrets:
-      docker_token: ${{ secrets.docker_token }}
